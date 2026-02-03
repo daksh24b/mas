@@ -99,8 +99,12 @@ class QdrantService:
             logger.info(f"Successfully created collection '{self.collection_name}'")
             
         except Exception as e:
-            logger.error(f"Failed to create collection: {e}")
-            raise
+            # Handle 409 Conflict (collection already exists) gracefully
+            if "already exists" in str(e):
+                logger.info(f"Collection '{self.collection_name}' already exists (concurrent creation)")
+            else:
+                logger.error(f"Failed to create collection: {e}")
+                raise
     
     def insert_claim(
         self,
