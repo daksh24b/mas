@@ -72,9 +72,18 @@ class EmbeddingService:
             ).to(self.device)
             
             with torch.no_grad():
-                text_features = self.clip_model.get_text_features(**inputs)
+                outputs = self.clip_model.get_text_features(**inputs)
+                # Extract the actual tensor from the output
+                if hasattr(outputs, 'last_hidden_state'):
+                    text_features = outputs.last_hidden_state[:, 0]  # CLS token
+                elif hasattr(outputs, 'pooler_output'):
+                    text_features = outputs.pooler_output
+                else:
+                    text_features = outputs  # Already a tensor
+                
                 # Normalize embeddings
-                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+                norm = torch.sqrt(torch.sum(text_features ** 2, dim=-1, keepdim=True))
+                text_features = text_features / norm
             
             embedding = text_features.cpu().numpy()[0].tolist()
             return embedding
@@ -103,9 +112,18 @@ class EmbeddingService:
             ).to(self.device)
             
             with torch.no_grad():
-                image_features = self.clip_model.get_image_features(**inputs)
+                outputs = self.clip_model.get_image_features(**inputs)
+                # Extract the actual tensor from the output
+                if hasattr(outputs, 'last_hidden_state'):
+                    image_features = outputs.last_hidden_state[:, 0]  # CLS token
+                elif hasattr(outputs, 'pooler_output'):
+                    image_features = outputs.pooler_output
+                else:
+                    image_features = outputs  # Already a tensor
+                
                 # Normalize embeddings
-                image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+                norm = torch.sqrt(torch.sum(image_features ** 2, dim=-1, keepdim=True))
+                image_features = image_features / norm
             
             embedding = image_features.cpu().numpy()[0].tolist()
             return embedding

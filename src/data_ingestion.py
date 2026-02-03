@@ -9,7 +9,7 @@ Supports:
 
 import pandas as pd
 import json
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import random
 from loguru import logger
